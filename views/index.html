@@ -1,0 +1,155 @@
+
+<style>
+    body {font-family: Arial, Helvetica, sans-serif;}
+  
+     /* The Modal (background) */
+    .modal {
+        display: none; /* Hidden by default */
+        position: fixed; /* Stay in place */
+        z-index: 1; /* Sit on top */
+        padding-top: 100px; /* Location of the box */
+        left: 0;
+        top: 0;
+        width: 100%; /* Full width */
+        height: 100%; /* Full height */
+        overflow: auto; /* Enable scroll if needed */
+        background-color: rgb(0,0,0); /* Fallback color */
+        background-color: rgba(0,0,0,0.4); /* Black w/ opacity */
+    }
+        
+    /* Modal Content */
+    .modal-content {
+        background-color: #fefefe;
+        margin: auto;
+        padding: 10px;
+        border: 1px solid #888;
+        width: 25%;
+    }
+        
+    /* The Close Button */
+    .close {
+        color: black;    
+        font-size: 15px;
+        font-weight: bold;
+    }
+
+    .message {
+        margin-left: 25%;
+        margin-right: 25%;
+        margin-bottom: 5%;
+        padding: 50px;
+        border: 1px solid #888;
+        width: 50%;
+    }
+
+    .saisi {
+        margin-left: 30%;
+        align-content: center;
+        margin-bottom: 2%;
+        border: 1px solid #888;
+        width: 50%;
+    }
+       
+    .btnSend {
+        margin-left: 50%;
+        margin-bottom: 5%;
+        padding: 10px;
+        width: 10%;
+    }
+
+</style>
+
+<div id="popupDiv" class="modal">
+  <div class="modal-content">
+     Pseudo :
+    <input type=" text" id='pseudo'>
+    <button id="myBtn" class="close">Validez</button>
+  </div>
+</div>
+
+<div id="messagesDiv" class='message'>
+    
+</div>
+
+<input class="saisi" type=" text" id='messageInput'>
+<button class="btnSend" id='submitBtn'>Send</button>
+<div>
+Liste des utilisateurs connecter :
+</div>
+<div id="listUtil" class='list'>
+    
+</div>
+
+<div class="">
+    Ecrire un message privée à :
+   <input type=" text" id='destinataire'>
+    Message :
+   <input type=" text" id='mp'>
+   <button id="envoieMp" class="">Envoyer</button> 
+ </div>
+
+
+
+<script src="/socket.io/socket.io.js"></script>
+<script>
+var socket = io();
+var popupDiv = document.getElementById('popupDiv')
+var pseudo = document.getElementById('pseudo')
+var myBtn = document.getElementById("myBtn")
+var listUtil = document.getElementById("listUtil")
+var messagesDiv = document.getElementById('messagesDiv')
+var submitBtn = document.getElementById('submitBtn')
+var messageInput = document.getElementById('messageInput')
+var listUser = []
+var destinataire = document.getElementById('destinataire')
+var mp = document.getElementById('mp')
+var envoieMp = document.getElementById('envoieMp')
+
+window.onload = function() {
+    popupDiv.style.display = "block";
+}
+
+myBtn.onclick = function() {
+    popupDiv.style.display = "none";
+    socket.emit('pseudo', pseudo.value) 
+   
+}
+
+myBtn.addEventListener('click', () => {
+    socket.emit('log','id : '+ socket.id +'  ' + pseudo.value)
+})
+
+submitBtn.addEventListener('click', () => {
+    console.log(messageInput)
+    socket.emit('message', pseudo.value +': ' + messageInput.value)
+    messageInput.value = '';
+})
+
+socket.on('message', data => {
+    console.log('message received : ', data) 
+    messagesDiv.innerHTML += '<p> De '+ data + '</p>'
+})
+
+ socket.on('list', (list) =>{
+    listUser = list
+    listUtil.innerHTML = ''
+    list.forEach(element => {
+        listUtil.innerHTML += '<p>' + element.id + '</p>'
+    });
+});  
+
+//chat privèe
+socket.emit('join', pseudo.value);
+
+envoieMp.addEventListener('click', () => {
+    socket.emit('destinataire', destinataire.value)
+    socket.emit('mp', mp.value)   
+})
+
+socket.on("mp", (data) => {
+    alert(data.mp);
+})
+
+
+socket.emit('loaded','page loaded !!!!')
+</script>
